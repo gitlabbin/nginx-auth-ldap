@@ -2246,6 +2246,33 @@ ngx_http_auth_ldap_check_group(ngx_http_request_t *r, ngx_http_auth_ldap_ctx_t *
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "http_auth_ldap: group_attribute.data is \"%V\" so calling a failure here", ctx->server->group_attribute.data);
         rc = !LDAP_SUCCESS;
     } else {
+        size_t i, count;
+        for (i=0, count=0; user_val[i]; i++){
+               count += (user_val[i] == '\\');
+        }
+
+        if(count > 0 ){
+               char *new_str;
+               new_str = ngx_pcalloc(r->pool, ngx_strlen(user_val)+(2*count));
+
+               int index=0;
+               for(i=0; i<ngx_strlen(user_val); i++){
+                       if(user_val[i] == '\\'){
+                               new_str[index] = '\\';
+                               index++;
+                               new_str[index] = '5';
+                               index++;
+                               new_str[index] = 'c';
+                               index++;
+                       }else{
+                               new_str[index] = user_val[i];
+                               index++;
+                       }
+               }
+               user_val = new_str;
+        }
+
+
         for_filter = ngx_strlen(cn_gr) + ctx->server->group_attribute.len + ngx_strlen((const char *) user_val) + ngx_strlen("(&()(=))") + 1;
         filter = ngx_pcalloc(
             r->pool,
