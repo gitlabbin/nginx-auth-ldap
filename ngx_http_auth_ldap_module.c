@@ -763,7 +763,7 @@ ngx_http_auth_ldap_escape_filter(ngx_http_request_t *r, ngx_str_t *in)
         return out;
     }
 
-    userbv.bv_val = in->data;
+    userbv.bv_val = (char *) in->data;
     userbv.bv_len = in->len;
     if (ldap_bv2escaped_filter_value(&userbv, &euserbv) != 0) {
         return out;
